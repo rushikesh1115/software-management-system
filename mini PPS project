@@ -1,0 +1,201 @@
+#include <iostream>
+#include <string>
+#include <vector>
+
+class Task {
+private:
+    std::string title;
+    std::string assignee;
+    bool completed;
+
+public:
+    Task(std::string t, std::string a) : title(t), assignee(a), completed(false) {}
+
+    std::string getTitle() const {
+        return title;
+    }
+
+    std::string getAssignee() const {
+        return assignee;
+    }
+
+    bool isCompleted() const {
+        return completed;
+    }
+
+    void markComplete() {
+        completed = true;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Task& task) {
+        os << "Title: " << task.title << ", Assignee: " << task.assignee 
+           << ", Status: " << (task.completed ? "Completed" : "Pending");
+        return os;
+    }
+};
+
+class Project {
+private:
+    std::string name;
+    std::vector<Task> tasks;
+
+public:
+    Project(std::string n) : name(n) {}
+
+    void addTask(const Task& task) {
+        tasks.push_back(task);
+    }
+
+    void viewTasks() const {
+        std::cout << "Tasks for Project: " << name << std::endl;
+        if (tasks.empty()) {
+            std::cout << "No tasks in this project." << std::endl;
+        } else {
+            for (const auto& task : tasks) {
+                std::cout << task << std::endl;
+            }
+        }
+    }
+
+    bool markTaskComplete(const std::string& title) {
+        for (auto& task : tasks) {
+            if (task.getTitle() == title) {
+                task.markComplete();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    std::string getName() const {
+        return name;
+    }
+};
+
+class SoftwareManagementSystem {
+private:
+    std::vector<Project> projects;
+
+public:
+    void addProject(const Project& project) {
+        projects.push_back(project);
+        std::cout << "Project added successfully." << std::endl;
+    }
+
+    void viewProjects() const {
+        if (projects.empty()) {
+            std::cout << "No projects available." << std::endl;
+        } else {
+            for (const auto& project : projects) {
+                project.viewTasks();
+            }
+        }
+    }
+
+    void searchProject(const std::string& name) const {
+        for (const auto& project : projects) {
+            if (project.getName() == name) {
+                project.viewTasks();
+                return;
+            }
+        }
+        std::cout << "Project not found." << std::endl;
+    }
+
+    bool addTaskToProject(const std::string& projectName, const Task& task) {
+        for (auto& project : projects) {
+            if (project.getName() == projectName) {
+                project.addTask(task);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool markTaskCompleteInProject(const std::string& projectName, const std::string& taskTitle) {
+        for (auto& project : projects) {
+            if (project.getName() == projectName) {
+                return project.markTaskComplete(taskTitle);
+            }
+        }
+        return false;
+    }
+};
+
+int main() {
+    SoftwareManagementSystem sms;
+
+    while (true) {
+        std::cout << "\nSoftware Management System" << std::endl;
+        std::cout << "1. Add a Project" << std::endl;
+        std::cout << "2. View All Projects" << std::endl;
+        std::cout << "3. Search a Project" << std::endl;
+        std::cout << "4. Add Task to Project" << std::endl;
+        std::cout << "5. Mark Task as Complete" << std::endl;
+        std::cout << "6. Exit" << std::endl;
+        std::cout << "Choose an option: ";
+
+        int choice;
+        std::cin >> choice;
+        std::cin.ignore();  // Consume newline character
+
+        switch (choice) {
+            case 1: {
+                std::string projectName;
+                std::cout << "Enter project name: ";
+                std::getline(std::cin, projectName);
+                Project project(projectName);
+                sms.addProject(project);
+                break;
+            }
+            case 2:
+                sms.viewProjects();
+                break;
+            case 3: {
+                std::string searchName;
+                std::cout << "Enter project name to search: ";
+                std::getline(std::cin, searchName);
+                sms.searchProject(searchName);
+                break;
+            }
+            case 4: {
+                std::string projectName, taskTitle, assignee;
+                std::cout << "Enter project name: ";
+                std::getline(std::cin, projectName);
+                std::cout << "Enter task title: ";
+                std::getline(std::cin, taskTitle);
+                std::cout << "Enter assignee: ";
+                std::getline(std::cin, assignee);
+
+                Task task(taskTitle, assignee);
+                if (sms.addTaskToProject(projectName, task)) {
+                    std::cout << "Task added successfully." << std::endl;
+                } else {
+                    std::cout << "Project not found." << std::endl;
+                }
+                break;
+            }
+            case 5: {
+                std::string projectName, taskTitle;
+                std::cout << "Enter project name: ";
+                std::getline(std::cin, projectName);
+                std::cout << "Enter task title to mark as complete: ";
+                std::getline(std::cin, taskTitle);
+
+                if (sms.markTaskCompleteInProject(projectName, taskTitle)) {
+                    std::cout << "Task marked as complete." << std::endl;
+                } else {
+                    std::cout << "Task not found." << std::endl;
+                }
+                break;
+            }
+            case 6:
+                std::cout << "Exiting the system." << std::endl;
+                return 0;
+            default:
+                std::cout << "Invalid choice. Please try again." << std::endl;
+        }
+    }
+
+    return 0;
+}
